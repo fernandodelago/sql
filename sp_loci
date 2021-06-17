@@ -1,0 +1,19 @@
+CREATE PROC [dbo].[sp_loci] @nome_schema [varchar](255),@nome_tabela [varchar](255) AS
+--- example: exec dbo.sp_loci 'dbo' 'tb_my_external_table'
+begin    
+    select top 1 t1.name as name_table
+         , T2.name AS data_source
+         , T1.location
+         , t3.name as file_format
+         , T1.reject_type
+         , T1.reject_value 
+    from sys.external_tables T1,
+         SYS.EXTERNAL_DATA_SOURCES T2,
+         sys.external_file_formats T3,
+         INFORMATION_SCHEMA.COLUMNS t4
+    where T1.data_source_id = T2.DATA_SOURCE_ID
+    and t1.file_format_id = t3.file_format_id
+    AND upper(T1.name) = UPPER(T4.TABLE_NAME)
+    AND UPPER(t4.TABLE_SCHEMA) = @nome_schema
+    AND UPPER(T4.TABLE_NAME) = @nome_tabela
+end
