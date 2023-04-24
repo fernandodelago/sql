@@ -1,0 +1,26 @@
+CREATE FUNCTION dbo.SPLIT (@inputString VARCHAR(MAX), @index INT, @separator CHAR(1))
+RETURNS VARCHAR(MAX)
+AS
+BEGIN
+    DECLARE @outputString VARCHAR(MAX)
+    DECLARE @array TABLE (item VARCHAR(MAX))
+
+    -- Split the input string into an array
+    WHILE CHARINDEX(@separator, @inputString) > 0
+    BEGIN
+        INSERT INTO @array (item)
+        SELECT SUBSTRING(@inputString, 1, CHARINDEX(@separator, @inputString) - 1)
+
+        SET @inputString = SUBSTRING(@inputString, CHARINDEX(@separator, @inputString) + 1, LEN(@inputString))
+    END
+    INSERT INTO @array (item) VALUES (@inputString)
+
+    -- Get the item at the specified index using a CTE
+    ;WITH CTE AS (
+        SELECT item, ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS rownum
+        FROM @array
+    )
+    SELECT @outputString = item FROM CTE WHERE rownum = @index
+
+    RETURN @outputString
+END
